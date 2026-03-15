@@ -14,36 +14,50 @@ const generateToken = (id) => {
 // @access  Public
 const registerUser = async (req, res) => {
     console.time('Registration Process');
-    const { name, email, password } = req.body;
+    try {
+        const { name, email, password } = req.body;
 
-    console.time('DB: Find User');
-    const userExists = await User.findOne({ email }).lean();
-    console.timeEnd('DB: Find User');
+        if (!name || !email || !password) {
+            res.status(400).json({ message: 'Please provide all fields' });
+            return;
+        }
 
-    if (userExists) {
-        res.status(400).json({ message: 'User already exists' });
-        return;
-    }
+        console.time('DB: Find User');
+        const userExists = await User.findOne({ email }).lean();
+        console.timeEnd('DB: Find User');
 
-    console.time('DB: Create User');
-    const user = await User.create({
-        name,
-        email,
-        password,
-    });
-    console.timeEnd('DB: Create User');
+        if (userExists) {
+            res.status(400).json({ message: 'User already exists' });
+            return;
+        }
 
-    if (user) {
-        res.status(201).json({
-            _id: user._id,
-            name: user.name,
-            email: user.email,
-            token: generateToken(user._id),
+        console.time('DB: Create User');
+        const user = await User.create({
+            name,
+            email,
+            password,
         });
-    } else {
-        res.status(400).json({ message: 'Invalid user data' });
+        console.timeEnd('DB: Create User');
+
+        if (user) {
+            res.status(201).json({
+                _id: user._id,
+                name: user.name,
+                email: user.email,
+                token: generateToken(user._id),
+            });
+        } else {
+            res.status(400).json({ message: 'Invalid user data' });
+        }
+    } catch (error) {
+        console.error('Registration Error:', error);
+        res.status(500).json({ 
+            message: 'Server Error during registration', 
+            error: error.message 
+        });
+    } finally {
+        console.timeEnd('Registration Process');
     }
-    console.timeEnd('Registration Process');
 };
 
 // @desc    Authenticate a user
