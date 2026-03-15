@@ -26,7 +26,8 @@ export default function RegisterPage() {
             login(res.data);
             router.push('/dashboard');
         } catch (err: any) {
-            setError(err.response?.data?.message || 'Registration failed');
+            console.error('Full Registration Error:', err);
+            setError(err.response?.data?.message || err.message || 'Registration failed - check console for details');
         } finally {
             setLoading(false);
         }

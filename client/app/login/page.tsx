@@ -25,7 +25,8 @@ export default function LoginPage() {
             login(res.data);
             router.push('/dashboard');
         } catch (err: any) {
-            setError(err.response?.data?.message || 'Login failed');
+            console.error('Full Login Error:', err);
+            setError(err.response?.data?.message || err.message || 'Login failed - check console for details');
         } finally {
             setLoading(false);
         }
