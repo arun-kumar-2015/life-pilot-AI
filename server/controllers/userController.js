@@ -15,6 +15,13 @@ const generateToken = (id) => {
 const registerUser = async (req, res) => {
     console.time('Registration Process');
     try {
+        const mongoose = require('mongoose');
+        if (mongoose.connection.readyState !== 1) {
+            console.log('DEBUG: DB not ready during registration attempt');
+            res.status(503).json({ message: 'Database is warming up, please wait 5 seconds and try again.' });
+            return;
+        }
+
         const { name, email, password } = req.body;
 
         if (!name || !email || !password) {
