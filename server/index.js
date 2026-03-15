@@ -13,6 +13,12 @@ const startServer = async () => {
     try {
         await connectDB();
         
+        if (!process.env.JWT_SECRET) {
+            console.error('CRITICAL: JWT_SECRET is missing in environment variables!');
+        } else {
+            console.log('DEBUG: JWT_SECRET is present');
+        }
+        
         // Middleware
         app.use(cors());
         app.use(express.json());
