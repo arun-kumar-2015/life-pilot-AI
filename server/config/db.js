@@ -6,7 +6,10 @@ dotenv.config();
 const connectDB = async () => {
     try {
         if (!process.env.MONGODB_URI) {
+            console.log('DEBUG: MONGODB_URI is MISSING in process.env');
             throw new Error('MONGODB_URI is not defined in environment variables');
+        } else {
+            console.log('DEBUG: MONGODB_URI is present (length:', process.env.MONGODB_URI.length, ')');
         }
         const options = {
             maxPoolSize: 10,
