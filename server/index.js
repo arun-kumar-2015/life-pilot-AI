@@ -9,8 +9,20 @@ const connectDB = require('./config/db');
 const app = express();
 
 // Middleware - Apply FIRST
-app.use(cors());
+// Robust CORS configuration for Production
+app.use(cors({
+    origin: '*', // Allows all origins for debugging; can be restricted later to your Vercel URL
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
+    credentials: true,
+    preflightContinue: false,
+    optionsSuccessStatus: 204
+}));
+
 app.use(express.json());
+
+// Explicitly handle OPTIONS for all routes
+app.options('*', cors());
 
 // Basic Routes
 app.get('/', (req, res) => res.send('LifePilot AI API is running...'));
@@ -53,4 +65,4 @@ process.on('unhandledRejection', (err) => {
     console.error('Unhandled Promise Rejection:', err);
 });
 
-// Deployment sync: 2026-03-15-16-52
+// Deployment sync: 2026-03-15-16-55
