@@ -1,8 +1,9 @@
 {
   "name": "ai-life-pilot-root",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "private": true,
   "scripts": {
+    "dev-all": "npm run dev --prefix client & npm run dev --prefix server",
     "build": "npm run build --prefix client",
     "install-client": "npm install --prefix client"
   }
