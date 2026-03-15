@@ -54,12 +54,12 @@ const authUser = async (req, res) => {
     const { email, password } = req.body;
 
     console.time('DB: Find User (Login)');
-    const user = await User.findOne({ email }); 
+    const user = await User.findOne({ email }).lean(); 
     console.timeEnd('DB: Find User (Login)');
 
     if (user) {
         console.time('CPU: Password Compare');
-        const isMatch = await user.matchPassword(password);
+        const isMatch = await bcrypt.compare(password, user.password);
         console.timeEnd('CPU: Password Compare');
 
         if (isMatch) {
