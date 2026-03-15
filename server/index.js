@@ -2,27 +2,34 @@ const dotenv = require('dotenv');
 dotenv.config();
 
 const express = require('express');
-const cors = require('cors');
 const mongoose = require('mongoose');
 const connectDB = require('./config/db');
 
 const app = express();
 
-// Middleware - Apply FIRST
-// Robust CORS configuration for Production
-app.use(cors({
-    origin: '*', // Allows all origins for debugging; can be restricted later to your Vercel URL
-    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-    allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
-    credentials: true,
-    preflightContinue: false,
-    optionsSuccessStatus: 204
-}));
+// Manual CORS Middleware - Replaces 'cors' package for absolute reliability
+app.use((req, res, next) => {
+    // Reflect request origin to support credentialed requests
+    const origin = req.headers.origin;
+    if (origin) {
+        res.setHeader('Access-Control-Allow-Origin', origin);
+    } else {
+        res.setHeader('Access-Control-Allow-Origin', '*');
+    }
+    
+    // Standard CORS Headers
+    res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+    res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With, Accept');
+    res.setHeader('Access-Control-Allow-Credentials', 'true');
+    
+    // Immediate response for Preflight OPTIONS
+    if (req.method === 'OPTIONS') {
+        return res.sendStatus(204);
+    }
+    next();
+});
 
 app.use(express.json());
-
-// Explicitly handle OPTIONS for all routes
-app.options('*', cors());
 
 // Basic Routes
 app.get('/', (req, res) => res.send('LifePilot AI API is running...'));
@@ -44,12 +51,12 @@ app.use('/api/daily-plan', require('./routes/dailyPlanRoutes'));
 app.use('/api/ai', require('./routes/aiRoutes'));
 app.use('/api/notes', require('./routes/noteRoutes'));
 
-// Start Server - Bind Port IMMEDIATELY for Render
+// Start Server - Bind Port IMMEDIATELY for Render Stability
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
     console.log(`Server running on port ${PORT}`);
     
-    // Connect to Database after binding to port to avoid Render timeout
+    // Connect to Database after binding to port to avoid Render startup timeouts
     connectDB().then(() => {
         if (!process.env.JWT_SECRET) {
             console.error('CRITICAL: JWT_SECRET is missing in environment variables!');
@@ -65,4 +72,4 @@ process.on('unhandledRejection', (err) => {
     console.error('Unhandled Promise Rejection:', err);
 });
 
-// Deployment sync: 2026-03-15-16-55
+// Deployment sync: 2026-03-15-18-35
