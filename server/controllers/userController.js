@@ -1,5 +1,6 @@
 const jwt = require('jsonwebtoken');
 const User = require('../models/User');
+const bcrypt = require('bcryptjs');
 
 // Generate JWT
 const generateToken = (id) => {
@@ -12,20 +13,25 @@ const generateToken = (id) => {
 // @route   POST /api/users
 // @access  Public
 const registerUser = async (req, res) => {
+    console.time('Registration Process');
     const { name, email, password } = req.body;
 
-    const userExists = await User.findOne({ email });
+    console.time('DB: Find User');
+    const userExists = await User.findOne({ email }).lean();
+    console.timeEnd('DB: Find User');
 
     if (userExists) {
         res.status(400).json({ message: 'User already exists' });
         return;
     }
 
+    console.time('DB: Create User');
     const user = await User.create({
         name,
         email,
         password,
     });
+    console.timeEnd('DB: Create User');
 
     if (user) {
         res.status(201).json({
@@ -37,26 +43,39 @@ const registerUser = async (req, res) => {
     } else {
         res.status(400).json({ message: 'Invalid user data' });
     }
+    console.timeEnd('Registration Process');
 };
 
 // @desc    Authenticate a user
 // @route   POST /api/users/login
 // @access  Public
 const authUser = async (req, res) => {
+    console.time('Login Process');
     const { email, password } = req.body;
 
-    const user = await User.findOne({ email });
+    console.time('DB: Find User (Login)');
+    const user = await User.findOne({ email }); 
+    console.timeEnd('DB: Find User (Login)');
 
-    if (user && (await user.matchPassword(password))) {
-        res.json({
-            _id: user._id,
-            name: user.name,
-            email: user.email,
-            token: generateToken(user._id),
-        });
-    } else {
-        res.status(401).json({ message: 'Invalid email or password' });
+    if (user) {
+        console.time('CPU: Password Compare');
+        const isMatch = await user.matchPassword(password);
+        console.timeEnd('CPU: Password Compare');
+
+        if (isMatch) {
+            res.json({
+                _id: user._id,
+                name: user.name,
+                email: user.email,
+                token: generateToken(user._id),
+            });
+            console.timeEnd('Login Process');
+            return;
+        }
     }
+    
+    res.status(401).json({ message: 'Invalid email or password' });
+    console.timeEnd('Login Process');
 };
 
 // @desc    Get user profile
