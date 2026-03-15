@@ -13,49 +13,54 @@ const generateToken = (id) => {
 // @route   POST /api/users
 // @access  Public
 const registerUser = async (req, res) => {
-    console.time('Registration Process');
+console.time('Registration Process');
     try {
-        const mongoose = require('mongoose');
-        if (mongoose.connection.readyState !== 1) {
-            console.log('DEBUG: DB not ready during registration attempt');
-            res.status(503).json({ message: 'Database is warming up, please wait 5 seconds and try again.' });
-            return;
-        }
-
         const { name, email, password } = req.body;
 
+        // Validate input
         if (!name || !email || !password) {
-            res.status(400).json({ message: 'Please provide all fields' });
-            return;
+            return res.status(400).json({ message: 'Please provide all fields' });
         }
 
+        if (password.length < 6) {
+            return res.status(400).json({ message: 'Password must be at least 6 characters' });
+        }
+
+        console.log(`Register attempt: ${email}`);
+
+        // Check if user exists
         console.time('DB: Find User');
         const userExists = await User.findOne({ email }).lean();
         console.timeEnd('DB: Find User');
 
         if (userExists) {
-            res.status(400).json({ message: 'User already exists' });
-            return;
+            return res.status(400).json({ message: 'User already exists with this email' });
         }
+
+        // Cleaned up earlier
+
+        // Explicit hash (backup to model pre-save)
+        console.time('CPU: Password Hash');
+        const salt = await bcrypt.genSalt(10);
+        const hashedPassword = await bcrypt.hash(password, salt);
+        console.timeEnd('CPU: Password Hash');
 
         console.time('DB: Create User');
         const user = await User.create({
             name,
             email,
-            password,
+            password: hashedPassword,  // hashed
         });
         console.timeEnd('DB: Create User');
 
-        if (user) {
-            res.status(201).json({
-                _id: user._id,
-                name: user.name,
-                email: user.email,
-                token: generateToken(user._id),
-            });
-        } else {
-            res.status(400).json({ message: 'Invalid user data' });
-        }
+        console.log(`User created: ${user._id}`);
+
+        res.status(201).json({
+            _id: user._id,
+            name: user.name,
+            email: user.email,
+            token: generateToken(user._id),
+        });
     } catch (error) {
         console.error('Registration Error:', error);
         res.status(500).json({ 
