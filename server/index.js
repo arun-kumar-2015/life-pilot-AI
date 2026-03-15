@@ -7,9 +7,14 @@ const connectDB = require('./config/db');
 
 const app = express();
 
+// Request Logger - CRITICAL for debugging production
+app.use((req, res, next) => {
+    console.log(`[${new Date().toISOString()}] ${req.method} ${req.url} - Origin: ${req.headers.origin || 'N/A'}`);
+    next();
+});
+
 // Manual CORS Middleware - Replaces 'cors' package for absolute reliability
 app.use((req, res, next) => {
-    // Reflect request origin to support credentialed requests
     const origin = req.headers.origin;
     if (origin) {
         res.setHeader('Access-Control-Allow-Origin', origin);
@@ -17,12 +22,10 @@ app.use((req, res, next) => {
         res.setHeader('Access-Control-Allow-Origin', '*');
     }
     
-    // Standard CORS Headers
     res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
     res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With, Accept');
     res.setHeader('Access-Control-Allow-Credentials', 'true');
     
-    // Immediate response for Preflight OPTIONS
     if (req.method === 'OPTIONS') {
         return res.sendStatus(204);
     }
@@ -33,10 +36,27 @@ app.use(express.json());
 
 // Basic Routes
 app.get('/', (req, res) => res.send('LifePilot AI API is running...'));
+
+// Enhanced Health Check
 app.get('/api/health', (req, res) => {
+    const readyState = mongoose.connection ? mongoose.connection.readyState : -1;
+    const states = {
+        0: 'disconnected',
+        1: 'connected',
+        2: 'connecting',
+        3: 'disconnecting',
+        '-1': 'uninitialized'
+    };
+    
     res.json({ 
         status: 'ok', 
-        database: mongoose.connection && mongoose.connection.readyState === 1 ? 'connected' : 'disconnected',
+        database: states[readyState] || 'unknown',
+        readyState: readyState,
+        env: {
+            has_mongo: !!process.env.MONGODB_URI,
+            has_jwt: !!process.env.JWT_SECRET,
+            port: process.env.PORT || 5000
+        },
         time: new Date().toISOString()
     });
 });
@@ -54,17 +74,13 @@ app.use('/api/notes', require('./routes/noteRoutes'));
 // Start Server - Bind Port IMMEDIATELY for Render Stability
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
-    console.log(`Server running on port ${PORT}`);
+    console.log(`Server running on port ${PORT} - Waiting for DB...`);
     
-    // Connect to Database after binding to port to avoid Render startup timeouts
+    // Connect to Database after binding to port
     connectDB().then(() => {
-        if (!process.env.JWT_SECRET) {
-            console.error('CRITICAL: JWT_SECRET is missing in environment variables!');
-        } else {
-            console.log('DEBUG: DB Connected & JWT_SECRET is ready');
-        }
+        console.log('DB Connection Promise Resolved');
     }).catch(err => {
-        console.error('Initial DB connection background failure:', err);
+        console.error('CRITICAL: DB Connection Failed in background:', err);
     });
 });
 
@@ -72,4 +88,4 @@ process.on('unhandledRejection', (err) => {
     console.error('Unhandled Promise Rejection:', err);
 });
 
-// Deployment sync: 2026-03-15-18-35
+// Final Stability Build: 2026-03-15-18-51
