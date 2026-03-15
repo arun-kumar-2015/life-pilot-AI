@@ -29,7 +29,7 @@ const startServer = async () => {
         app.use('/api/study', require('./routes/studyRoutes'));
         app.use('/api/daily-plan', require('./routes/dailyPlanRoutes'));
         app.use('/api/ai', require('./routes/aiRoutes'));
-app.use('/api/notes', require('./routes/noteRoutes'));
+        app.use('/api/notes', require('./routes/noteRoutes'));
         
         const PORT = process.env.PORT || 5000;
         
@@ -47,3 +47,5 @@ startServer();
 process.on('unhandledRejection', (err) => {
     console.error('Unhandled Promise Rejection:', err);
 });
+
+// Deployment sync: 2026-03-15-15-08
