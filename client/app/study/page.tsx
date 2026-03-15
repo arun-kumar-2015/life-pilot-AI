@@ -4,6 +4,7 @@ import DashboardLayout from '@/components/DashboardLayout';
 import { useAuth } from '@/context/AuthContext';
 import { useState, useEffect } from 'react';
 import axios from 'axios';
+import API_URL from '@/config';
 import { GraduationCap, BookOpen, Clock, Sparkles, Loader2, Plus, Calendar, Trash2 } from 'lucide-react';
 
 export default function StudyPlannerPage() {
@@ -22,7 +23,7 @@ export default function StudyPlannerPage() {
         setMounted(true);
         const fetchPlans = async () => {
             try {
-                const res = await axios.get('http://localhost:5000/api/study', config);
+                const res = await axios.get(`${API_URL}/study`, config);
                 setPlans(res.data);
             } catch (err) {
                 console.error(err);
@@ -36,7 +37,7 @@ export default function StudyPlannerPage() {
     const deletePlan = async (id: string) => {
         if (!confirm('Are you sure you want to delete this study plan?')) return;
         try {
-            await axios.delete(`http://localhost:5000/api/study/${id}`, config);
+            await axios.delete(`${API_URL}/study/${id}`, config);
             setPlans(plans.filter(p => p._id !== id));
         } catch (err) {
             console.error(err);
@@ -64,7 +65,7 @@ export default function StudyPlannerPage() {
                 setPlans([res.data, ...plans]);
             } else {
                 // Manual Generation Flow
-                const aiRes = await axios.post('http://localhost:5000/api/ai/chat', { 
+                const aiRes = await axios.post(`${API_URL}/ai/chat`, { 
                     prompt: `Create a detailed 3-day study schedule for ${subject} with an exam on ${examDate}. 
                     CRITICAL: Return ONLY a valid JSON object with a 'schedule' key. 
                     Format: Exact time ranges (e.g. 09:00-10:00 AM), Periods (Morning/Afternoon/Evening), Topics, and Descriptions. 
@@ -93,7 +94,7 @@ export default function StudyPlannerPage() {
                     scheduleData = aiRes.data.response;
                 }
 
-                const res = await axios.post('http://localhost:5000/api/study', { 
+                const res = await axios.post(`${API_URL}/study`, { 
                     subject, 
                     examDate, 
                     schedule: scheduleData 

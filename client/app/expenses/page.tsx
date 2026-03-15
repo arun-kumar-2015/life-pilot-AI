@@ -4,6 +4,7 @@ import DashboardLayout from '@/components/DashboardLayout';
 import { useAuth } from '@/context/AuthContext';
 import { useState, useEffect } from 'react';
 import axios from 'axios';
+import API_URL from '@/config';
 import { Plus, Trash2, Wallet, TrendingUp, PieChart as PieChartIcon, Sparkles, Loader2 } from 'lucide-react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell, PieChart, Pie } from 'recharts';
 
@@ -23,7 +24,7 @@ export default function ExpensesPage() {
         setMounted(true);
         const fetchExpenses = async () => {
             try {
-                const res = await axios.get('http://localhost:5000/api/expenses', config);
+                const res = await axios.get(`${API_URL}/expenses`, config);
                 setExpenses(res.data);
             } catch (err) {
                 console.error(err);
@@ -37,7 +38,7 @@ export default function ExpensesPage() {
     const addExpense = async (e: React.FormEvent) => {
         e.preventDefault();
         try {
-            const res = await axios.post('http://localhost:5000/api/expenses', { amount: Number(amount), category }, config);
+            const res = await axios.post(`${API_URL}/expenses`, { amount: Number(amount), category }, config);
             setExpenses([res.data, ...expenses]);
             setAmount('');
         } catch (err) {
@@ -58,7 +59,7 @@ export default function ExpensesPage() {
         setAiLoading(true);
         try {
             const expenseSummary = expenses.slice(0, 5).map((e: any) => `${e.category}: $${e.amount}`).join(', ');
-            const res = await axios.post('http://localhost:5000/api/ai/chat', { 
+            const res = await axios.post(`${API_URL}/ai/chat`, { 
                 prompt: `Analyze these recent expenses for me: ${expenseSummary}. Provide one budget recommendation.`
             }, config);
             alert(res.data.response);

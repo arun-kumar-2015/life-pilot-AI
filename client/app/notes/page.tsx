@@ -4,6 +4,7 @@ import DashboardLayout from '@/components/DashboardLayout';
 import { useAuth } from '@/context/AuthContext';
 import { useState, useEffect } from 'react';
 import axios from 'axios';
+import API_URL from '@/config';
 import { Plus, Trash2, StickyNote, Smile, Meh, Frown, Loader2, Send, Sparkles } from 'lucide-react';
 
 export default function NotesPage() {
@@ -19,7 +20,7 @@ export default function NotesPage() {
     useEffect(() => {
         const fetchNotes = async () => {
             try {
-                const res = await axios.get('http://localhost:5000/api/notes', config);
+                const res = await axios.get(`${API_URL}/notes`, config);
                 setNotes(res.data);
             } catch (err) {
                 console.error(err);
@@ -36,7 +37,7 @@ export default function NotesPage() {
         
         setSubmitLoading(true);
         try {
-            const res = await axios.post('http://localhost:5000/api/notes', { content, mood }, config);
+            const res = await axios.post(`${API_URL}/notes`, { content, mood }, config);
             setNotes([res.data, ...notes]);
             setContent('');
             setMood('Neutral');

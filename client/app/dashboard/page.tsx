@@ -4,6 +4,7 @@ import DashboardLayout from '@/components/DashboardLayout';
 import { useAuth } from '@/context/AuthContext';
 import { useEffect, useState } from 'react';
 import axios from 'axios';
+import API_URL from '@/config';
 import { 
     AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
 } from 'recharts';
@@ -28,10 +29,10 @@ export default function Dashboard() {
         const fetchData = async () => {
             try {
                 const [tasksRes, expensesRes, goalsRes, planRes] = await Promise.all([
-                    axios.get('http://localhost:5000/api/tasks', config),
-                    axios.get('http://localhost:5000/api/expenses', config),
-                    axios.get('http://localhost:5000/api/goals', config),
-                    axios.get('http://localhost:5000/api/daily-plan', config)
+                    axios.get(`${API_URL}/tasks`, config),
+                    axios.get(`${API_URL}/expenses`, config),
+                    axios.get(`${API_URL}/goals`, config),
+                    axios.get(`${API_URL}/daily-plan`, config)
                 ]);
                 setTasks(tasksRes.data);
                 setExpenses(expensesRes.data);
@@ -51,7 +52,7 @@ export default function Dashboard() {
     const generateDailyPlan = async () => {
         setPlanLoading(true);
         try {
-            const res = await axios.post('http://localhost:5000/api/ai/chat', { 
+            const res = await axios.post(`${API_URL}/ai/chat`, { 
                 prompt: "Identify my profile and current state. Based on 24 hours, create a detailed morning-to-night routine for today. Return ONLY a valid JSON array of objects with 'time', 'activity', and 'icon' properties (icons should be emoji). CRITICAL: All property values MUST be enclosed in double quotes. Do not include any text before or after the JSON array. Example: [{\"time\": \"08:00 AM\", \"activity\": \"Breakfast\", \"icon\": \"🍳\"}]"
             }, config);
             
@@ -78,7 +79,7 @@ export default function Dashboard() {
                 const planItems = JSON.parse(jsonStr);
                 const validatedItems = Array.isArray(planItems) ? planItems : planItems.items || [];
                 setDailyPlan(validatedItems);
-                await axios.post('http://localhost:5000/api/daily-plan', { items: validatedItems }, config);
+                await axios.post(`${API_URL}/daily-plan`, { items: validatedItems }, config);
             };
 
             try {
@@ -112,7 +113,7 @@ export default function Dashboard() {
                         { time: "08:00 PM", activity: "Dinner & Relaxation", icon: "🕯️" },
                     ];
                     setDailyPlan(fallback);
-                    await axios.post('http://localhost:5000/api/daily-plan', { items: fallback }, config);
+                    await axios.post(`${API_URL}/daily-plan`, { items: fallback }, config);
                 }
             }
         } catch (err) {
@@ -146,7 +147,7 @@ export default function Dashboard() {
     const saveDailyPlan = async () => {
         setPlanLoading(true);
         try {
-            await axios.post('http://localhost:5000/api/daily-plan', { items: editPlan }, config);
+            await axios.post(`${API_URL}/daily-plan`, { items: editPlan }, config);
             setDailyPlan(editPlan);
             setIsEditing(false);
         } catch (err) {

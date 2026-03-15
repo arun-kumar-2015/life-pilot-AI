@@ -6,6 +6,7 @@ import { useAuth } from '@/context/AuthContext';
 import { useRouter } from 'next/navigation';
 import { Mail, Lock, ArrowRight, Loader2 } from 'lucide-react';
 import axios from 'axios';
+import API_URL from '@/config';
 
 export default function LoginPage() {
     const [email, setEmail] = useState('');
@@ -20,7 +21,7 @@ export default function LoginPage() {
         setLoading(true);
         setError('');
         try {
-            const res = await axios.post('http://localhost:5000/api/users/login', { email, password });
+            const res = await axios.post(`${API_URL}/users/login`, { email, password });
             login(res.data);
             router.push('/dashboard');
         } catch (err: any) {

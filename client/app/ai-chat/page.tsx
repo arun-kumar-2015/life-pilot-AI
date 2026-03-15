@@ -4,6 +4,7 @@ import DashboardLayout from '@/components/DashboardLayout';
 import { useAuth } from '@/context/AuthContext';
 import { useState, useRef, useEffect } from 'react';
 import axios from 'axios';
+import API_URL from '@/config';
 import { Send, Mic, MicOff, Bot, User, Loader2, Sparkles, MessageCircle, Volume2, VolumeX, ListTodo, GraduationCap, DollarSign, BrainCircuit } from 'lucide-react';
 
 export default function AIChatPage() {
@@ -61,7 +62,7 @@ export default function AIChatPage() {
         setLoading(true);
 
         try {
-            const res = await axios.post('http://localhost:5000/api/ai/chat', { prompt: text }, config);
+            const res = await axios.post(`${API_URL}/ai/chat`, { prompt: text }, config);
             const aiMsg = { role: 'ai', content: res.data.response };
             setMessages(prev => [...prev, aiMsg]);
             speak(res.data.response);

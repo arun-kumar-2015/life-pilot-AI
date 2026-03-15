@@ -6,6 +6,7 @@ import { useAuth } from '@/context/AuthContext';
 import { useRouter } from 'next/navigation';
 import { User, Mail, Lock, ArrowRight, Loader2 } from 'lucide-react';
 import axios from 'axios';
+import API_URL from '@/config';
 
 export default function RegisterPage() {
     const [name, setName] = useState('');
@@ -21,7 +22,7 @@ export default function RegisterPage() {
         setLoading(true);
         setError('');
         try {
-            const res = await axios.post('http://localhost:5000/api/users', { name, email, password });
+            const res = await axios.post(`${API_URL}/users`, { name, email, password });
             login(res.data);
             router.push('/dashboard');
         } catch (err: any) {

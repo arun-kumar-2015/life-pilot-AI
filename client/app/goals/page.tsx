@@ -4,11 +4,12 @@ import DashboardLayout from '@/components/DashboardLayout';
 import { useAuth } from '@/context/AuthContext';
 import { useState, useEffect } from 'react';
 import axios from 'axios';
+import API_URL from '@/config';
 import { Plus, Target, CheckCircle2, Circle, Sparkles, Loader2, Trash2 } from 'lucide-react';
 
 export default function GoalsPage() {
     const { user } = useAuth();
-    const [goals, setGoals] = useState([]);
+    const [goals, setGoals] = useState<any[]>([]);
     const [goalTitle, setGoalTitle] = useState('');
     const [loading, setLoading] = useState(true);
     const [aiLoading, setAiLoading] = useState(false);
@@ -18,7 +19,7 @@ export default function GoalsPage() {
     useEffect(() => {
         const fetchGoals = async () => {
             try {
-                const res = await axios.get('http://localhost:5000/api/goals', config);
+                const res = await axios.get(`${API_URL}/goals`, config);
                 setGoals(res.data);
             } catch (err) {
                 console.error(err);
@@ -32,7 +33,7 @@ export default function GoalsPage() {
     const addGoal = async (e: React.FormEvent) => {
         e.preventDefault();
         try {
-            const res = await axios.post('http://localhost:5000/api/goals', { goalTitle, subTasks: [] }, config);
+            const res = await axios.post(`${API_URL}/goals`, { goalTitle, subTasks: [] }, config);
             setGoals([res.data, ...goals]);
             setGoalTitle('');
         } catch (err) {
@@ -43,7 +44,7 @@ export default function GoalsPage() {
     const breakGoal = async (goal: any) => {
         setAiLoading(true);
         try {
-            const res = await axios.post('http://localhost:5000/api/ai/chat', { 
+            const res = await axios.post(`${API_URL}/ai/chat`, { 
                 prompt: `Break down this goal into 5 small actionable sub-tasks: "${goal.goalTitle}". Return a JSON object with a 'subtasks' key containing an array of strings.`
             }, config);
             
@@ -66,7 +67,7 @@ export default function GoalsPage() {
                 throw new Error("Could not generate valid sub-tasks");
             }
 
-            const updatedGoal = await axios.put(`http://localhost:5000/api/goals/${goal._id}`, { subTasks }, config);
+            const updatedGoal = await axios.put(`${API_URL}/goals/${goal._id}`, { subTasks }, config);
             setGoals(goals.map((g: any) => g._id === goal._id ? updatedGoal.data : g));
         } catch (err) {
             console.error(err);

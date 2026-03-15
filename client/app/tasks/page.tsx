@@ -4,6 +4,7 @@ import DashboardLayout from '@/components/DashboardLayout';
 import { useAuth } from '@/context/AuthContext';
 import { useState, useEffect } from 'react';
 import axios from 'axios';
+import API_URL from '@/config';
 import { Plus, Trash2, CheckSquare, Square, AlertCircle, Sparkles, Loader2, Clock, Bell, BellOff } from 'lucide-react';
 
 export default function TasksPage() {
@@ -21,7 +22,7 @@ export default function TasksPage() {
     useEffect(() => {
         const fetchTasks = async () => {
             try {
-                const res = await axios.get('http://localhost:5000/api/tasks', config);
+                const res = await axios.get(`${API_URL}/tasks`, config);
                 setTasks(res.data);
             } catch (err) {
                 console.error(err);
@@ -55,7 +56,7 @@ export default function TasksPage() {
         e.preventDefault();
         console.log('Adding task with state:', { newTitle, priority, newTime, reminder });
         try {
-            const res = await axios.post('http://localhost:5000/api/tasks', { 
+            const res = await axios.post(`${API_URL}/tasks`, { 
                 title: newTitle, 
                 priority,
                 time: newTime,
@@ -74,7 +75,7 @@ export default function TasksPage() {
     const toggleStatus = async (task: any) => {
         try {
             const newStatus = task.status === 'completed' ? 'pending' : 'completed';
-            const res = await axios.put(`http://localhost:5000/api/tasks/${task._id}`, { status: newStatus }, config);
+            const res = await axios.put(`${API_URL}/tasks/${task._id}`, { status: newStatus }, config);
             setTasks(tasks.map((t: any) => t._id === task._id ? res.data : t));
         } catch (err) {
             console.error(err);
@@ -83,7 +84,7 @@ export default function TasksPage() {
 
     const toggleReminder = async (task: any) => {
         try {
-            const res = await axios.put(`http://localhost:5000/api/tasks/${task._id}`, { reminder: !task.reminder }, config);
+            const res = await axios.put(`${API_URL}/tasks/${task._id}`, { reminder: !task.reminder }, config);
             setTasks(tasks.map((t: any) => t._id === task._id ? res.data : t));
         } catch (err) {
             console.error(err);
@@ -92,7 +93,7 @@ export default function TasksPage() {
 
     const deleteTask = async (id: string) => {
         try {
-            await axios.delete(`http://localhost:5000/api/tasks/${id}`, config);
+            await axios.delete(`${API_URL}/tasks/${id}`, config);
             setTasks(tasks.filter((t: any) => t._id !== id));
         } catch (err) {
             console.error(err);
@@ -102,7 +103,7 @@ export default function TasksPage() {
     const suggestPriority = async () => {
         setAiLoading(true);
         try {
-            const res = await axios.post('http://localhost:5000/api/ai/chat', { 
+            const res = await axios.post(`${API_URL}/ai/chat`, { 
                 prompt: `Suggest a priority level (low, medium, or high) for this task: "${newTitle}". Explain why briefly.`
             }, config);
             const suggestion = res.data.response.toLowerCase();
